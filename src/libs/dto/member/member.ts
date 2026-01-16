@@ -16,7 +16,7 @@ export class Member {
   memberNick: string;
 
   // ❌ never expose password in REST response
-  // memberPassword: string;
+  memberPassword: string;
 
   memberFullName?: string;
   memberImage: string;

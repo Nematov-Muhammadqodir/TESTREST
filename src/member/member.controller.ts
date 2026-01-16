@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { Member } from 'src/libs/dto/member/member';
-import { MemberInput } from 'src/libs/dto/member/member.input';
+import { LoginInput, MemberInput } from 'src/libs/dto/member/member.input';
 
 @Controller('member')
 export class MemberController {
@@ -19,5 +19,11 @@ export class MemberController {
     console.log('Mutation signup');
     console.log('Input', input);
     return await this.memberService.signup(input);
+  }
+
+  @Post('login')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  public async login(@Body() input: LoginInput): Promise<Member> {
+    return await this.memberService.login(input);
   }
 }
