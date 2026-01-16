@@ -5,23 +5,29 @@ import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { SECRET } from '../config';
 import { MemberService } from 'src/member/member.service';
+import { Member } from '../dto/member/member';
 
+interface AuthenticatedRequest extends Request {
+  user?: Member; // or whatever type you want
+}
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   constructor(private readonly userService: MemberService) {}
 
-  async use(req: Request, res: Response, next: NextFunction) {
+  async use(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const authHeaders = req.headers.authorization;
     if (authHeaders && (authHeaders as string).split(' ')[1]) {
+      console.log('I am here');
       const token = (authHeaders as string).split(' ')[1];
       const decoded: any = jwt.verify(token, SECRET);
-      const user = await this.userService.findById(decoded.id);
+      const user: Member = await this.userService.findById(decoded.id);
 
       if (!user) {
+        console.log('I am here UNAUTHORIZED');
         throw new HttpException('User not found.', HttpStatus.UNAUTHORIZED);
       }
 
-      req.user = user.user;
+      req.user = user;
       next();
     } else {
       throw new HttpException('Not authorized.', HttpStatus.UNAUTHORIZED);

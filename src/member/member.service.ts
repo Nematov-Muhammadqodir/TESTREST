@@ -1,7 +1,13 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
+import { AuthService } from 'src/auth/auth.service';
 import { Member } from 'src/libs/dto/member/member';
+import { MemberInput } from 'src/libs/dto/member/member.input';
 import { Message } from 'src/libs/enums/common.enum';
 import { MemberStatus } from 'src/libs/enums/member.enum';
 import { T } from 'src/libs/types/common';
@@ -10,7 +16,27 @@ import { T } from 'src/libs/types/common';
 export class MemberService {
   constructor(
     @InjectModel('Member') private readonly memberModel: Model<Member>,
+    private authService: AuthService,
   ) {}
+
+  public async signup(input: MemberInput): Promise<Member> {
+    input.memberPassword = await this.authService.hashPassword(
+      input.memberPassword,
+    );
+    try {
+      const member = await this.memberModel.create(input);
+
+      // Convert Mongoose document to plain object
+      const result = member.toObject();
+      //TODO: Authentication with tokens
+      result.accessToken = await this.authService.createToken(result);
+
+      return result;
+    } catch (err) {
+      console.log('Error, signup', err.message);
+      throw new BadRequestException(Message.USED_MEMBER_NICK_OR_PHONE);
+    }
+  }
 
   async findById(targetId: ObjectId): Promise<Member> {
     const search: T = {
