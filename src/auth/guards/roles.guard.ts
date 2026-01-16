@@ -22,8 +22,8 @@ export class RolesGuard implements CanActivate {
 
     console.info(`--- @guard() Authentication [RolesGuard]: ${roles} ---`);
 
-    if (context.contextType === 'graphql') {
-      const request = context.getArgByIndex(2).req;
+    if (context.contextType === 'http') {
+      const request = context.switchToHttp().getRequest();
       const bearerToken = request.headers.authorization;
       if (!bearerToken) throw new BadRequestException(Message.TOKEN_NOT_EXIST);
 
@@ -35,8 +35,9 @@ export class RolesGuard implements CanActivate {
       if (!authMember || !hasPermission)
         throw new ForbiddenException(Message.ONLY_SPECIFIC_ROLES_ALLOWED);
 
-      console.log('memberNick[roles] =>', authMember.memberNick);
-      request.body.authMember = authMember;
+      console.log('memberNick[roles] =>', authMember.memberType);
+
+      request.authMember = authMember;
       return true;
     }
 

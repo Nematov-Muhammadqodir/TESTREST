@@ -34,6 +34,7 @@ interface AuthenticatedRequest extends Request {
 
 export const AuthMember = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
+    console.log('Heree');
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
 
     if (!request.authMember) {
